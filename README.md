@@ -25,21 +25,35 @@ It wrote the code, ran away, and now the game is unplayable.
 
 ## 📝 Document Your Experience
 
-- [ ] Describe the game's purpose.
-- [ ] Detail which bugs you found.
-- [ ] Explain what fixes you applied.
+- [x] Describe the game's purpose.
+
+  Game Glitch Investigator is a number-guessing game built with Streamlit. The player picks a difficulty, guesses a secret number within a limited number of attempts, and gets "Go HIGHER" or "Go LOWER" hints and a score. The code was AI-generated and contains deliberate bugs, and the exercise is to find them, fix them and back the fixes with tests.
+
+- [x] Detail which bugs you found.
+  - **Swapped hints:** a guess above the secret said "Go HIGHER!" and a guess below it said "Go LOWER!".
+  - **Secret turned into a string on even attempts:** `app.py` converted the secret with `str()` on every even attempt. That made `int > str` raise a `TypeError` in the browser, and the string fallback in `check_guess` compared numbers as text.
+  - **New Game didn't fully reset:** it only reset `attempts` and `secret`, so `status`, `score` and `history` carried over. After a win or loss the game stayed stuck on "You already won" or "Game over". The new secret also always came from 1-100, ignoring the difficulty range.
+
+- [x] Explain what fixes you applied.
+  - **Hints:** moved `check_guess` into `logic_utils.py`, corrected both hint directions (including the `TypeError` fallback branch), and imported it in `app.py`.
+  - **String secret:** removed the `str()` conversion so `check_guess` always receives the secret as an int.
+  - **New Game:** added `new_game_state(low, high)` to `logic_utils.py`. It returns fresh attempts, secret, status, score and history, with the secret drawn from the current difficulty's range, and `app.py` now loads those values on New Game.
+  - **Tests:** `tests/test_game_logic.py` now covers the win case, both hint directions (with int and string secrets), the New Game reset, and the secret staying within range. A `pytest.ini` puts the project root on the import path so `pytest` runs from the root.
 
 ## 📸 Demo Walkthrough
 
-Describe your fixed game in numbered steps so a reader can follow along without watching a video:
+A sample game on Normal difficulty (range 1-100), where the secret number is 42:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Run the game and pick a difficulty in the sidebar. The range and attempts allowed are shown.
+2. Enter `75` and click **Submit Guess**. The game says "📉 Go LOWER!" because the guess is above the secret.
+3. Enter `20`. The game says "📈 Go HIGHER!" because the guess is below the secret.
+4. Keep narrowing in with `50` (lower), then `40` (higher). The hints stay correct on every attempt.
+5. Enter `42`. The game shows balloons, reveals the secret and displays your final score, then blocks further guesses.
+6. Click **New Game**. Status, score and guess history reset, and a new secret is drawn from the current difficulty's range.
+
 
 **Screenshot** *(optional)*: <!-- Insert a screenshot of your fixed, winning game here -->
+![alt text](<Screenshot 2026-10-08 at 20-25-13 Glitchy Guesser.png>)
 
 ## 🧪 Test Results
 

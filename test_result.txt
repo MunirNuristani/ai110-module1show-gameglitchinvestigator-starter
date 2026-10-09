@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0 -- /Users/mnuristani/Desktop/Projects/CodePath/CodePath_AI110/week_3/ai110-module1show-gameglitchinvestigator-starter/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/mnuristani/Desktop/Projects/CodePath/CodePath_AI110/week_3/ai110-module1show-gameglitchinvestigator-starter
+configfile: pytest.ini
+plugins: anyio-4.15.1
+collecting ... collected 7 items
+
+tests/test_game_logic.py::test_winning_guess PASSED                      [ 14%]
+tests/test_game_logic.py::test_guess_too_high PASSED                     [ 28%]
+tests/test_game_logic.py::test_guess_too_low PASSED                      [ 42%]
+tests/test_game_logic.py::test_too_high_hint_with_string_secret PASSED   [ 57%]
+tests/test_game_logic.py::test_too_low_hint_with_string_secret PASSED    [ 71%]
+tests/test_game_logic.py::test_new_game_resets_status_score_and_history PASSED [ 85%]
+tests/test_game_logic.py::test_new_game_secret_respects_difficulty_range PASSED [100%]
+
+============================== 7 passed in 0.01s ===============================
