@@ -137,3 +137,14 @@ def test_switching_difficulty_starts_a_fresh_game():
     assert at.session_state["attempts"] == 0
     assert at.session_state["history"] == []
     assert at.session_state["status"] == "playing"
+
+
+# --- Prompt text ---
+
+def test_prompt_shows_range_for_each_difficulty():
+    at = run_app()
+    assert "between 1 and 100" in at.info[0].value
+    at.sidebar.selectbox[0].select("Easy").run()
+    assert "between 1 and 20" in at.info[0].value
+    at.sidebar.selectbox[0].select("Hard").run()
+    assert "between 1 and 50" in at.info[0].value

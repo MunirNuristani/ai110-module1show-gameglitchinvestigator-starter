@@ -42,6 +42,11 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
    - Expected Behavior: the game restarts with a secret inside 1-20.
    - Actual Behavior: the secret is only drawn once per session, so it can still be 99 on Easy (a number you can never guess in range), and attempts, score and history carry over.
 
+7. **Prompt always says "between 1 and 100".**
+   - Switch to Easy (1-20) or Hard (1-50).
+   - Expected Behavior: the prompt shows the range for the selected difficulty.
+   - Actual Behavior: the text is hardcoded to "between 1 and 100", while the sidebar shows the real range.
+
 **Bug Reproduction Log**
 
 | Input Used | Expected Behavior | Actual Behavior | Console Error / Output | Suspected Code Location |
@@ -51,6 +56,7 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 | Win a game, then click "New Game" | New game starts, score 0, status "playing" | Page still shows "You already won. Start a new game to play again."; score -10 carried over | none | `app.py`, New Game block (lines 134-138) |
 | Guess too high on an even attempt (score 0) | Score drops to -5 | Score rises to +5 | none | `update_score` "Too High" branch |
 | Load on Normal, switch to Easy | New secret within 1-20 | Secret from the Normal draw is kept (e.g. 99) | none | `app.py` session state init |
+| Select Easy | Prompt says "between 1 and 20" | Prompt says "between 1 and 100" | none | `app.py` `st.info` text |
 | First guess `10` on Normal (8 attempts) | "Attempts left: 7" counted from 0 | `attempts` starts at 1; the first guess already leaves 7 and New Game resets to 0 | none | `app.py` lines 95-96, 134-135, 148 |
 **Fix Log** (one row per fix)
 
@@ -62,6 +68,7 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 | 4 | Attempt counter off by one; bad input costs an attempt | Session state is initialised with `new_game_state` (attempts start at 0), and attempts only increase after `parse_guess` succeeds. `parse_guess` moved to `logic_utils.py` | `parse_guess` cases, fresh game starts at 0, invalid guess keeps attempts, valid guess adds one |
 | 5 | Wrong "Too High" guesses sometimes add points | `update_score` moved to `logic_utils.py`; "Too High" now always costs 5 | too high and too low always cost points, win points and floor, a wrong guess never raises the score |
 | 6 | Secret ignores the difficulty after switching | `get_range_for_difficulty` moved to `logic_utils.py`; `app.py` starts a fresh game on first load and whenever the difficulty changes | ranges per difficulty, new secret within the new range, switch resets attempts, history and status |
+| 7 | Prompt always says "between 1 and 100" | The prompt now uses the selected difficulty's `low` and `high` | prompt text for Normal, Easy and Hard |
 
 ---
 
