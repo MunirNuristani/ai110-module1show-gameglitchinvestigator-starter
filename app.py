@@ -42,10 +42,17 @@ if st.session_state.get("difficulty") != difficulty:
 
 st.subheader("Make a guess")
 
-st.info(
-    f"Guess a number between {low} and {high}. "
-    f"Attempts left: {attempt_limit - st.session_state.attempts}"
-)
+# Reserve the spot now and fill it once the guess has been processed, so the
+# attempts-left count never lags a guess behind.
+prompt_slot = st.empty()
+
+
+def show_prompt():
+    prompt_slot.info(
+        f"Guess a number between {low} and {high}. "
+        f"Attempts left: {attempt_limit - st.session_state.attempts}"
+    )
+
 
 with st.expander("Developer Debug Info"):
     st.write("Secret:", st.session_state.secret)
@@ -74,6 +81,7 @@ if new_game:
     st.rerun()
 
 if st.session_state.status != "playing":
+    show_prompt()
     if st.session_state.status == "won":
         st.success("You already won. Start a new game to play again.")
     else:
@@ -116,6 +124,8 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+
+show_prompt()
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")

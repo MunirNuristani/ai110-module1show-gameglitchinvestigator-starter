@@ -148,3 +148,16 @@ def test_prompt_shows_range_for_each_difficulty():
     assert "between 1 and 20" in at.info[0].value
     at.sidebar.selectbox[0].select("Hard").run()
     assert "between 1 and 50" in at.info[0].value
+
+
+def test_attempts_left_updates_right_after_a_guess():
+    # Normal allows 8 attempts; after one guess the prompt must say 7 left
+    at = run_app()
+    assert "Attempts left: 8" in at.info[0].value
+    submit_guess(at, "50")
+    assert "Attempts left: 7" in at.info[0].value
+
+def test_invalid_guess_leaves_attempts_left_unchanged():
+    at = run_app()
+    submit_guess(at, "abc")
+    assert "Attempts left: 8" in at.info[0].value
