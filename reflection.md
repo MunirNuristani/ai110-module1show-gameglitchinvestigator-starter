@@ -40,6 +40,15 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 | Guess `5` on attempt 6, secret `30` | Hint based on 5 < 30 (numeric) | Compared as the strings "5" and "30" via the `TypeError` fallback, so the hint is unreliable on every even attempt | none (the `TypeError` is silently caught) | `app.py` lines 158-161 and `check_guess` fallback (41-47) |
 | Win a game, then click "New Game" | New game starts, score 0, status "playing" | Page still shows "You already won. Start a new game to play again."; score -10 carried over | none | `app.py`, New Game block (lines 134-138) |
 | First guess `10` on Normal (8 attempts) | "Attempts left: 7" counted from 0 | `attempts` starts at 1; the first guess already leaves 7 and New Game resets to 0 | none | `app.py` lines 95-96, 134-135, 148 |
+**Fix Log** (one row per fix)
+
+| # | Bug | Fix | Tests added |
+|---|-----|-----|-------------|
+| 1 | Hints are backwards | `check_guess` moved to `logic_utils.py` with both hint directions corrected | win, too high, too low |
+| 2 | Secret turned into a string on even attempts | Removed the `str()` conversion in `app.py` | string-secret fallback hints |
+| 3 | New Game doesn't fully reset | `new_game_state(low, high)` in `logic_utils.py` resets attempts, secret, status, score and history | reset values, secret within range |
+| 4 | Attempt counter off by one; bad input costs an attempt | Session state is initialised with `new_game_state` (attempts start at 0), and attempts only increase after `parse_guess` succeeds. `parse_guess` moved to `logic_utils.py` | `parse_guess` cases, fresh game starts at 0, invalid guess keeps attempts, valid guess adds one |
+
 ---
 
 ## 2. How did you use AI as a teammate?

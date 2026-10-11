@@ -1,4 +1,23 @@
-from logic_utils import check_guess, new_game_state
+from pathlib import Path
+
+from streamlit.testing.v1 import AppTest
+
+from logic_utils import check_guess, new_game_state, parse_guess
+
+APP_PATH = str(Path(__file__).resolve().parent.parent / "app.py")
+
+
+def run_app():
+    at = AppTest.from_file(APP_PATH)
+    at.run()
+    assert not at.exception
+    return at
+
+
+def submit_guess(at, text):
+    at.text_input[0].set_value(text).run()
+    at.button[0].click().run()
+    assert not at.exception
 
 def test_winning_guess():
     # If the secret is 50 and guess is 50, it should be a win
@@ -41,3 +60,33 @@ def test_new_game_secret_respects_difficulty_range():
     # Easy range is 1-20; the secret must never fall outside it
     for _ in range(200):
         assert 1 <= new_game_state(1, 20)["secret"] <= 20
+
+
+# --- Attempt counter / invalid input ---
+
+def test_parse_guess_rejects_blank_and_non_numeric():
+    for raw in [None, "", "abc"]:
+        ok, value, err = parse_guess(raw)
+        assert ok is False
+        assert value is None
+        assert err
+
+def test_parse_guess_accepts_whole_number():
+    assert parse_guess("42") == (True, 42, None)
+
+def test_fresh_game_starts_with_zero_attempts():
+    # A fresh page load must agree with New Game, which also starts at 0
+    at = run_app()
+    assert at.session_state["attempts"] == 0
+
+def test_invalid_guess_does_not_use_an_attempt():
+    at = run_app()
+    submit_guess(at, "abc")
+    assert at.session_state["attempts"] == 0
+    submit_guess(at, "")
+    assert at.session_state["attempts"] == 0
+
+def test_valid_guess_uses_one_attempt():
+    at = run_app()
+    submit_guess(at, "50")
+    assert at.session_state["attempts"] == 1
