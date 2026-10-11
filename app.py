@@ -1,16 +1,12 @@
 import random
 import streamlit as st
-from logic_utils import check_guess, new_game_state, parse_guess, update_score
-
-def get_range_for_difficulty(difficulty: str):
-    if difficulty == "Easy":
-        return 1, 20
-    if difficulty == "Normal":
-        return 1, 100
-    if difficulty == "Hard":
-        return 1, 50
-    return 1, 100
-
+from logic_utils import (
+    check_guess,
+    get_range_for_difficulty,
+    new_game_state,
+    parse_guess,
+    update_score,
+)
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
@@ -37,9 +33,12 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
-if "secret" not in st.session_state:
+# Start a fresh game on first load and whenever the difficulty changes, so the
+# secret always matches the selected range.
+if st.session_state.get("difficulty") != difficulty:
     for key, value in new_game_state(low, high).items():
         st.session_state[key] = value
+    st.session_state.difficulty = difficulty
 
 st.subheader("Make a guess")
 

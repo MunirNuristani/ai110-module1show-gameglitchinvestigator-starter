@@ -2,7 +2,7 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
-from logic_utils import check_guess, new_game_state, parse_guess, update_score
+from logic_utils import check_guess, get_range_for_difficulty, new_game_state, parse_guess, update_score
 
 APP_PATH = str(Path(__file__).resolve().parent.parent / "app.py")
 
@@ -112,3 +112,28 @@ def test_wrong_guess_never_beats_not_guessing():
     for outcome in ["Too High", "Too Low"]:
         for attempt in range(1, 9):
             assert update_score(0, outcome, attempt) < 0
+
+
+# --- Difficulty changes ---
+
+def test_difficulty_ranges():
+    assert get_range_for_difficulty("Easy") == (1, 20)
+    assert get_range_for_difficulty("Normal") == (1, 100)
+    assert get_range_for_difficulty("Hard") == (1, 50)
+
+def test_switching_difficulty_redraws_secret_in_new_range():
+    # A Normal secret of 99 is impossible on Easy (1-20)
+    at = run_app()
+    at.session_state["secret"] = 99
+    at.sidebar.selectbox[0].select("Easy").run()
+    assert not at.exception
+    assert 1 <= at.session_state["secret"] <= 20
+
+def test_switching_difficulty_starts_a_fresh_game():
+    at = run_app()
+    submit_guess(at, "50")
+    assert at.session_state["attempts"] == 1
+    at.sidebar.selectbox[0].select("Hard").run()
+    assert at.session_state["attempts"] == 0
+    assert at.session_state["history"] == []
+    assert at.session_state["status"] == "playing"
