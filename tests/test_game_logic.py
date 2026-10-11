@@ -2,7 +2,7 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
-from logic_utils import check_guess, new_game_state, parse_guess
+from logic_utils import check_guess, new_game_state, parse_guess, update_score
 
 APP_PATH = str(Path(__file__).resolve().parent.parent / "app.py")
 
@@ -90,3 +90,25 @@ def test_valid_guess_uses_one_attempt():
     at = run_app()
     submit_guess(at, "50")
     assert at.session_state["attempts"] == 1
+
+
+# --- Scoring ---
+
+def test_too_high_always_costs_points():
+    # Previously even attempts earned +5 for a wrong "Too High" guess
+    for attempt in range(1, 9):
+        assert update_score(50, "Too High", attempt) == 45
+
+def test_too_low_always_costs_points():
+    for attempt in range(1, 9):
+        assert update_score(50, "Too Low", attempt) == 45
+
+def test_win_adds_points_and_never_drops_below_ten():
+    assert update_score(0, "Win", 1) == 80
+    assert update_score(0, "Win", 20) == 10
+
+def test_wrong_guess_never_beats_not_guessing():
+    # A wrong guess must never raise the score, whatever the attempt number
+    for outcome in ["Too High", "Too Low"]:
+        for attempt in range(1, 9):
+            assert update_score(0, outcome, attempt) < 0
