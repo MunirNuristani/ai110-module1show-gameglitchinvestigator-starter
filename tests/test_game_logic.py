@@ -161,3 +161,35 @@ def test_invalid_guess_leaves_attempts_left_unchanged():
     at = run_app()
     submit_guess(at, "abc")
     assert "Attempts left: 8" in at.info[0].value
+
+
+# --- Input validation ---
+
+def test_parse_guess_rejects_fractional_numbers():
+    # 3.7 used to be silently truncated to 3
+    ok, value, err = parse_guess("3.7")
+    assert ok is False
+    assert value is None
+    assert "whole number" in err
+
+def test_parse_guess_accepts_whole_decimal():
+    assert parse_guess("5.0") == (True, 5, None)
+
+def test_parse_guess_rejects_out_of_range():
+    for raw in ["0", "101", "-5"]:
+        ok, value, err = parse_guess(raw, 1, 100)
+        assert ok is False
+        assert value is None
+        assert "between 1 and 100" in err
+
+def test_parse_guess_accepts_range_edges():
+    assert parse_guess("1", 1, 100) == (True, 1, None)
+    assert parse_guess("100", 1, 100) == (True, 100, None)
+
+def test_out_of_range_guess_does_not_use_an_attempt():
+    # 50 is fine on Normal but outside Easy's 1-20
+    at = run_app()
+    at.sidebar.selectbox[0].select("Easy").run()
+    submit_guess(at, "50")
+    assert at.session_state["attempts"] == 0
+    assert at.error[0].value == "Enter a number between 1 and 20."

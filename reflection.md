@@ -52,6 +52,11 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
    - Expected Behavior: the prompt immediately shows "Attempts left: 7".
    - Actual Behavior: the prompt is drawn before the guess is processed, so it still shows 8 until the next interaction (and never shows the final count after the last guess).
 
+9. **Out-of-range and fractional guesses are accepted.**
+   - Enter `500` or `-5` on Easy (1-20), or `3.7` anywhere.
+   - Expected Behavior: an error message, and no attempt used.
+   - Actual Behavior: `parse_guess` accepts any integer, and `3.7` is silently truncated to `3`, so a guess the player never made is scored and recorded.
+
 **Bug Reproduction Log**
 
 | Input Used | Expected Behavior | Actual Behavior | Console Error / Output | Suspected Code Location |
@@ -63,6 +68,7 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 | Load on Normal, switch to Easy | New secret within 1-20 | Secret from the Normal draw is kept (e.g. 99) | none | `app.py` session state init |
 | Select Easy | Prompt says "between 1 and 20" | Prompt says "between 1 and 100" | none | `app.py` `st.info` text |
 | Submit one guess on Normal | "Attempts left: 7" right away | Still "Attempts left: 8" after the guess | none | `app.py` `st.info` drawn before the submit block |
+| Guess `50` on Easy (1-20), or `3.7` | Error message, no attempt used | Accepted as a normal guess; `3.7` becomes `3` | none | `parse_guess` |
 | First guess `10` on Normal (8 attempts) | "Attempts left: 7" counted from 0 | `attempts` starts at 1; the first guess already leaves 7 and New Game resets to 0 | none | `app.py` lines 95-96, 134-135, 148 |
 **Fix Log** (one row per fix)
 
@@ -76,6 +82,7 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 | 6 | Secret ignores the difficulty after switching | `get_range_for_difficulty` moved to `logic_utils.py`; `app.py` starts a fresh game on first load and whenever the difficulty changes | ranges per difficulty, new secret within the new range, switch resets attempts, history and status |
 | 7 | Prompt always says "between 1 and 100" | The prompt now uses the selected difficulty's `low` and `high` | prompt text for Normal, Easy and Hard |
 | 8 | "Attempts left" lags one guess behind | The prompt goes in a placeholder (`st.empty()`) that is filled after the guess is processed, and also before the game-over `st.stop()` | attempts left after a valid guess, unchanged after an invalid guess |
+| 9 | Out-of-range and fractional guesses accepted | `parse_guess(raw, low, high)` rejects non-whole decimals and numbers outside the range; `app.py` passes the difficulty range | fractions, whole decimals, out of range, range edges, out-of-range guess keeps attempts |
 
 ---
 

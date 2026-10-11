@@ -12,9 +12,12 @@ def get_range_for_difficulty(difficulty: str):
     return 1, 100
 
 
-def parse_guess(raw: str):
+def parse_guess(raw: str, low: int = None, high: int = None):
     """
     Parse user input into an int guess.
+
+    Rejects non-whole decimals (3.7) and, when low/high are given, numbers
+    outside that inclusive range.
 
     Returns: (ok: bool, guess_int: int | None, error_message: str | None)
     """
@@ -26,11 +29,17 @@ def parse_guess(raw: str):
 
     try:
         if "." in raw:
-            value = int(float(raw))
+            number = float(raw)
+            if not number.is_integer():
+                return False, None, "Enter a whole number."
+            value = int(number)
         else:
             value = int(raw)
     except Exception:
         return False, None, "That is not a number."
+
+    if low is not None and high is not None and not low <= value <= high:
+        return False, None, f"Enter a number between {low} and {high}."
 
     return True, value, None
 
